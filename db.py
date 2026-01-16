@@ -110,10 +110,12 @@ def reserve_gift(gift_id: int, user: str):
 
 
 def unreserve_gift(gift_id: int):
+    comments_rows = get_comments_for_gift(gift_id)
+    status = 'commented' if comments_rows else 'available'
     with get_connection() as conn:
         conn.execute(
-            "UPDATE wishlist SET status = 'available', reserved_by = NULL WHERE id = ?",
-            (gift_id,)
+            "UPDATE wishlist SET status = ?, reserved_by = NULL WHERE id = ?",
+            (status, gift_id)
         )
         conn.commit()
 

@@ -21,7 +21,9 @@ async def start_handler(message: Message):
         "🎁 Welcome to the Birthday Wishlist Bot!\n\n"
         "Use /list to see gifts\n"
         "Use /add to add a new gift\n"
-        "Use /comment to comment on a gift"
+        "Use /comment to comment on a gift\n"
+        "Use /reserve to reserve a gift\n"
+        "Use /unreserve to unreserve a gift\n"
     )
 
 @dp.message(Command("list"))
@@ -40,7 +42,7 @@ async def list_handler(message: Message):
 
         status_line = {
             "available": "🟢 *Available*",
-            "commented": "🟡 *Partially claimed*",
+            "commented": "🟡 *Commented*",
             "reserved": f"🔴 *Reserved* by *@{item['reserved_by']}*"
         }.get(status, status) or status
 
@@ -254,38 +256,6 @@ async def uncomment_finish(message: Message, state: FSMContext):
     )
     await state.clear()
 
-class EditComment(StatesGroup):
-    waiting_for_id = State()
-    waiting_for_text = State()
-
-@dp.message(Command("editcomment"))
-async def edit_start(message: Message, state: FSMContext):
-    await message.answer("✏️ Send comment ID to edit")
-    await state.set_state(EditComment.waiting_for_id)
-
-@dp.message(EditComment.waiting_for_id)
-async def edit_get_id(message: Message, state: FSMContext):
-    assert message.text
-    if not message.text.isdigit():
-        return
-    await state.update_data(comment_id=int(message.text))
-    await message.answer("✍️ Send new text")
-    await state.set_state(EditComment.waiting_for_text)
-@dp.message(EditComment.waiting_for_text)
-async def edit_finish(message: Message, state: FSMContext):
-    data = await state.get_data()
-    assert message.from_user
-    assert message.text
-    author = message.from_user.username or message.from_user.full_name
-
-    update_comment(data["comment_id"], author, message.text)
-
-    await message.answer(
-        "✅ Comment updated!",
-        reply_markup=main_actions_kb()
-    )
-    await state.clear()
-
 @dp.callback_query(lambda c: c.data == "list")
 async def show_list(call: CallbackQuery):
     await list_handler(call.message)
@@ -294,6 +264,11 @@ async def show_list(call: CallbackQuery):
 @dp.callback_query(lambda c: c.data == "comment")
 async def start_comment(call: CallbackQuery, state: FSMContext):
     await comment_start(call.message, state)
+    await call.answer()
+
+@dp.callback_query(lambda c: c.data == "add")
+async def start_comment(call: CallbackQuery, state: FSMContext):
+    await add_start(call.message, state)
     await call.answer()
 
 @dp.callback_query(lambda c: c.data == "reserve")

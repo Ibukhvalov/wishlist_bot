@@ -11,6 +11,9 @@ def main_actions_kb() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(text="🔒 Reserve", callback_data="reserve"),
                 InlineKeyboardButton(text="🔓 Unreserve", callback_data="unreserve")
+            ],
+            [
+                InlineKeyboardButton(text="👀 Add", callback_data="add"),
             ]
         ]
     )
