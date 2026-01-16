@@ -9,7 +9,7 @@ from aiogram.fsm.context import FSMContext
 from config import BOT_TOKEN
 from keyboards import main_actions_kb
 
-from db import init_db, get_all_items, get_comments_for_gift, add_item, reserve_gift, unreserve_gift, update_comment, delete_comment, get_reserved_by
+from db import init_db, get_all_items, get_comments_for_gift, add_item, reserve_gift, unreserve_gift, update_comment, delete_comment, get_reserved_by, delete_gift
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -21,6 +21,7 @@ async def start_handler(message: Message):
         "🎁 Welcome to the Birthday Wishlist Bot!\n\n"
         "Use /list to see gifts\n"
         "Use /add to add a new gift\n"
+        "Use /delete to delete any gift\n"
         "Use /comment to comment on a gift\n"
         "Use /reserve to reserve a gift\n"
         "Use /unreserve to unreserve a gift\n"
@@ -69,7 +70,6 @@ async def list_handler(message: Message):
 class AddGift(StatesGroup):
     waiting_for_title = State()
     waiting_for_description = State()
-
 
 @dp.message(Command("add"))
 async def add_start(message: Message, state: FSMContext):
@@ -126,8 +126,6 @@ async def comment_start(message: Message, state: FSMContext):
         parse_mode="Markdown"
     )
     await state.set_state(AddComment.waiting_for_gift_id)
-
-
 
 @dp.message(AddComment.waiting_for_gift_id)
 async def comment_get_id(message: Message, state: FSMContext):
@@ -192,6 +190,32 @@ async def reserve_finish(message: Message, state: FSMContext):
 
     await message.answer(
         "🔒 Gift reserved! No duplicates today 😎",
+        reply_markup=main_actions_kb()
+    )
+    await state.clear()
+
+class DeleteGift(StatesGroup):
+    waiting_for_id = State()
+
+@dp.message(Command("delete"))
+async def delete_start(message: Message, state: FSMContext):
+    await message.answer("❌ Send gift number to delete 👇")
+    await state.set_state(DeleteGift.waiting_for_id)
+
+@dp.message(DeleteGift.waiting_for_id)
+async def delete_finish(message: Message, state: FSMContext):
+    if not str(message.text).isdigit():
+        await message.answer("❌ Number please 🙂")
+        return
+
+    gift_id = int(str(message.text))
+    assert message.from_user is not None
+    user = message.from_user.username or message.from_user.full_name
+
+    delete_gift(gift_id, user)
+
+    await message.answer(
+        "❌ Gift deleted! Nobody could gift that anymore 😎",
         reply_markup=main_actions_kb()
     )
     await state.clear()
@@ -269,6 +293,11 @@ async def start_comment(call: CallbackQuery, state: FSMContext):
 @dp.callback_query(lambda c: c.data == "add")
 async def start_comment(call: CallbackQuery, state: FSMContext):
     await add_start(call.message, state)
+    await call.answer()
+
+@dp.callback_query(lambda c: c.data == "delete")
+async def start_comment(call: CallbackQuery, state: FSMContext):
+    await delete_start(call.message, state)
     await call.answer()
 
 @dp.callback_query(lambda c: c.data == "reserve")

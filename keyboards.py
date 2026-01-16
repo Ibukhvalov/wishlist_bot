@@ -14,6 +14,7 @@ def main_actions_kb() -> InlineKeyboardMarkup:
             ],
             [
                 InlineKeyboardButton(text="👀 Add", callback_data="add"),
+                InlineKeyboardButton(text="🗑️ Delete", callback_data="delete"),
             ]
         ]
     )

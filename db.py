@@ -45,6 +45,14 @@ def add_item(title: str, description: str | None, username: str) -> int:
         assert cur.lastrowid is not None
         return cur.lastrowid
 
+def delete_gift(gift_id: int, username: str) -> int:
+    with get_connection() as conn:
+        cur = conn.execute(
+            "DELETE FROM wishlist WHERE id = ?",
+            (gift_id,)
+        )
+        conn.commit()
+
 def get_all_items():
     with get_connection() as conn:
         conn.row_factory = sqlite3.Row
