@@ -41,7 +41,7 @@ async def list_handler(message: Message):
         status_line = {
             "available": "🟢 *Available*",
             "commented": "🟡 *Partially claimed*",
-            "reserved": f"🔴 *Reserved* by *@{item["reserved_by"]}*"
+            "reserved": f"🔴 *Reserved* by *@{item['reserved_by']}*"
         }.get(status, status) or status
 
         lines.append(f"{item['id']}️⃣ *{item['title']}*")
@@ -138,8 +138,7 @@ async def comment_get_id(message: Message, state: FSMContext):
     await state.update_data(gift_id=gift_id)
 
     await message.answer(
-        "✍️ Now send your comment\n"
-        "_Example: I can buy part of it_",
+        "✍️ Now send your comment\n",
         parse_mode="Markdown"
     )
     await state.set_state(AddComment.waiting_for_text)

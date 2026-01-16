@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 from datetime import datetime
 
-DB_PATH = Path("wishlist.db")
+DB_PATH = Path("data/wishlist.db")
 
 
 def get_connection():
