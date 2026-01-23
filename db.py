@@ -73,7 +73,7 @@ def add_comment(gift_id: int, author: str, text: str):
         )
 
         conn.execute(
-            "UPDATE wishlist SET status = 'commented' WHERE id = ?",
+            "UPDATE wishlist SET status = 'commented' WHERE id = ? AND status != 'reserved'",
             (gift_id,)
         )
 
